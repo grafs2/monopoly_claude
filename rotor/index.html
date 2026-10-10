@@ -51,6 +51,7 @@ kbd {
   border: 0; border-bottom: 3px solid #000; border-radius: 8px; touch-action: none;
 }
 #touch button.on { background: var(--ink-dim); color: #000; }
+#touch #restart { align-self: center; width: 52px; height: 52px; }
 #touch .fire { width: 110px; height: 110px; border-radius: 50%; font-size: 26px; }
 @media (pointer: coarse) {
   #touch { display: flex; }
@@ -67,12 +68,15 @@ kbd {
   <span><kbd>Space</kbd> helmet laser</span>
   <span><kbd>P</kbd> pause</span>
   <span><kbd>M</kbd> sound</span>
+  <span><kbd>R</kbd> restart game</span>
+  <span><kbd>Esc</kbd> title</span>
 </div>
 <div id="touch">
   <div class="pad">
     <span></span><button data-k="up" aria-label="Rotor">&#9650;</button><span></span>
     <button data-k="left" aria-label="Left">&#9664;</button><button data-k="down" aria-label="Dynamite">&#9660;</button><button data-k="right" aria-label="Right">&#9654;</button>
   </div>
+  <button id="restart" aria-label="Restart game">R</button>
   <button class="fire" data-k="fire" aria-label="Laser">FIRE</button>
 </div>
 <script>
@@ -1802,6 +1806,8 @@ window.addEventListener('keydown', e => {
   if (k) { keys[k] = true; hits[k] = true; e.preventDefault(); }
   if (e.code === 'KeyP' && !e.repeat) togglePause();
   if (e.code === 'KeyM' && !e.repeat) toggleMute();
+  if (e.code === 'KeyR' && !e.repeat) restartGame();
+  if (e.code === 'Escape' && !e.repeat) quitToTitle();
   initAudio();
 });
 window.addEventListener('keyup', e => { const k = KEYMAP[e.code]; if (k) { keys[k] = false; e.preventDefault(); } });
@@ -1814,6 +1820,7 @@ document.querySelectorAll('#touch [data-k]').forEach(b => {
   b.addEventListener('pointercancel', off); b.addEventListener('pointerleave', off);
 });
 cv.addEventListener('pointerdown', () => { initAudio(); hits.start = true; });
+document.getElementById('restart').addEventListener('click', () => { initAudio(); restartGame(); });
 
 const input = { left: false, right: false, up: false, down: false, fire: false, start: false };
 const prev = { ...input };
@@ -1923,7 +1930,7 @@ let hiscore = 0;
 try { hiscore = +localStorage.getItem('rotor_hi') || 0; } catch (e) { hiscore = 0; }
 
 const G = { state: 'title', paused: false, t: 0, score: 0, lives: 3, levelIdx: 0, loop: 0, startSel: 0, nextLife: 20000, timer: 0, tally: 0 };
-const H = { laserT: 0, x: 0, y: 0, w: 10, h: 18, vy: 0, face: 1, spin: 0, onGround: false, walkT: 0, rotT: 0, firing: false, beam: null, power: 1, dyn: 6, ex: 0, ey: 0, deadT: 0 };
+const H = { laserT: 0, safeT: 0, x: 0, y: 0, w: 10, h: 18, vy: 0, face: 1, spin: 0, onGround: false, walkT: 0, rotT: 0, firing: false, beam: null, power: 1, dyn: 6, ex: 0, ey: 0, deadT: 0 };
 let L = null;
 
 const PRO_START = 12;                       // after level 20 the PRO round replays levels 13-20
@@ -1956,7 +1963,7 @@ function buildLevel(idx) {
   for (let r = 0; r < mh; r++) for (let c = 0; c < mw; c++) {
     const ch = g[r * mw + c], x = c * TS, y = r * TS, scr = Math.floor(c / SC) + ',' + Math.floor(r / SR);
     switch (ch) {
-      case 'P': start = { x: x + 3, y: y }; g[r * mw + c] = '.'; break;
+      case 'P': start = { x: x + 3, y: (r + 1) * TS - 18 }; g[r * mw + c] = '.'; break;
       case 'X': lv.miner = { x: x, y: (r + 1) * TS - 18, w: 16, h: 18 }; g[r * mw + c] = '.'; break;
       case '!': lv.lanterns.push({ x: x, y: y + 2, w: 16, h: 8, on: true, scr }); g[r * mw + c] = '.'; break;
       case 'T': g[r * mw + c] = '~'; lv.enemies.push({ type: 'tentacle', x: x + 4, base: y + 2, ph: hash(c, r, 7) * 6, scr, hgt: 0 }); break;
@@ -1966,8 +1973,8 @@ function buildLevel(idx) {
         lv.enemies.push({ type: 'spider', x: x, top: ar * TS, min: ar * TS + 6, max: (fr + 1) * TS - 12, y: y, ph: hash(c, r, 3) * 6, scr });
         g[r * mw + c] = '.'; break;
       }
-      case 'B': lv.enemies.push({ type: 'bat', x: x, y: y + 4, by: y + 4, vx: hash(c, r, 1) < 0.5 ? -0.7 : 0.7, ph: hash(c, r, 2) * 6, scr }); g[r * mw + c] = '.'; break;
-      case 'O': lv.enemies.push({ type: 'moth', x: x, y: y, by: y, vx: 0.45, ph: hash(c, r, 5) * 6, scr }); g[r * mw + c] = '.'; break;
+      case 'B': lv.enemies.push({ type: 'bat', x: x, y: y + 4, by: y + 4, x0: x, y0: y + 4, vx: hash(c, r, 1) < 0.5 ? -0.7 : 0.7, ph: hash(c, r, 2) * 6, scr }); g[r * mw + c] = '.'; break;
+      case 'O': lv.enemies.push({ type: 'moth', x: x, y: y, by: y, x0: x, y0: y, vx: 0.45, ph: hash(c, r, 5) * 6, scr }); g[r * mw + c] = '.'; break;
       case 'N': {
         const left = solid(at(c - 1, r));
         lv.enemies.push({ type: 'snake', dir: left ? 1 : -1, ox: left ? x : x + TS, y: y + 6, ext: 0, ph: hash(c, r, 9) * 6, scr });
@@ -2051,6 +2058,15 @@ function touchesMagma(x, y, w, h) {
 function inWater(x, y, w, h) {
   return tilesIn(x + 2, y + h - 3, w - 4, 3, (t, c, r) => t === '~' && y + h > r * TS + 3);
 }
+// If the hero ever overlaps solid rock, move him to the nearest free spot.
+function unstick() {
+  if (!blocked(H.x, H.y, H.w, H.h)) return;
+  for (let d = 1; d <= 32; d++) {
+    for (const [dx, dy] of [[0, -d], [0, d], [-d, 0], [d, 0], [-d, -d], [d, -d], [-d, d], [d, d]]) {
+      if (!blocked(H.x + dx, H.y + dy, H.w, H.h)) { H.x += dx; H.y += dy; return; }
+    }
+  }
+}
 function moveAxis(dx, dy) {
   let rem = dx || dy;
   const s = Math.sign(rem);
@@ -2074,7 +2090,9 @@ function newGame() {
 function startLevel() {
   L = buildLevel(G.levelIdx);
   H.x = L.start.x; H.y = L.start.y; H.vy = 0; H.spin = 0; H.face = 1; H.power = 1; H.dyn = 6;
+  unstick();
   for (let i = 0; i < PH && !blocked(H.x, H.y + 1, H.w, H.h); i++) H.y++;   // start standing on the floor
+  H.safeT = 0;
   H.firing = false; H.beam = null; H.laserT = 0;
   setScreenFromHero(true);
   G.state = 'play';
@@ -2107,9 +2125,33 @@ function killHero() {
 function respawn() {
   G.lives--;
   if (G.lives < 0) { G.state = 'gameover'; G.timer = 0; SFX.over(); return; }
-  H.x = H.ex; H.y = H.ey; H.vy = 0; H.spin = 0; H.power = 1; H.firing = false;
+  H.x = H.ex; H.y = H.ey; H.vy = 0; H.spin = 0; H.power = 1; H.firing = false; H.laserT = 0;
   L.dyn = null; L.started = false;
+  unstick();
+  H.safeT = SAFE_FRAMES;
+  clearRespawnArea();
   G.state = 'play';
+}
+// After a respawn nothing may hover right next to the hero: flying enemies on this
+// screen that are too close are sent back to their start point, or pushed away.
+const SAFE_FRAMES = 150, SAFE_DIST = 80;
+function clearRespawnArea() {
+  const key = scrKey(), hx = H.x + H.w / 2, hy = H.y + H.h / 2;
+  const dist = (x, y) => Math.hypot(x + 8 - hx, y + 3 - hy);
+  for (const e of L.enemies) {
+    if (e.dead || e.scr !== key || (e.type !== 'bat' && e.type !== 'moth')) continue;
+    if (dist(e.x, e.y) >= SAFE_DIST) continue;
+    if (dist(e.x0, e.y0) >= SAFE_DIST) { e.x = e.x0; e.y = e.by = e.y0; }
+    else {
+      const dir = e.x + 8 < hx ? -1 : 1, left = L.sx * VW, right = left + VW - 16;
+      for (let i = 0; i < 400 && dist(e.x, e.y) < SAFE_DIST; i++) {
+        const nx = e.x + dir;
+        if (nx < left || nx > right || blocked(nx, e.y, 16, 6)) break;
+        e.x = nx;
+      }
+    }
+    e.vx = Math.abs(e.vx) * (e.x + 8 < hx ? -1 : 1);   // fly away from the hero
+  }
 }
 function burst(x, y, cols, n = 12) {
   for (let i = 0; i < n; i++) L.parts.push({ x, y, vx: Math.random() * 3 - 1.5, vy: Math.random() * 3 - 2, life: 18 + Math.random() * 18, col: cols[i % cols.length] });
@@ -2239,6 +2281,14 @@ function updateTitle() {
   if (pressed('right') || pressed('up')) G.startSel = (G.startSel + 1) % n;
   if (pressed('fire') || pressed('start')) newGame();
 }
+function restartGame() {
+  if (G.state === 'title') return;
+  G.paused = false;
+  newGame();
+}
+function quitToTitle() {
+  G.paused = false; G.state = 'title';
+}
 function togglePause() {
   if (G.state === 'play' || G.state === 'dying' || G.state === 'rescue') G.paused = !G.paused;
 }
@@ -2250,6 +2300,8 @@ function updatePlay() {
   if (!L.started && (I.left || I.right || I.up || I.down || I.fire)) L.started = true;
   if (L.started) H.power -= L.drain * (1 + 0.2 * G.loop);
 
+  unstick();
+  if (H.safeT > 0) H.safeT--;
   // horizontal
   let dx = 0;
   if (I.left) { dx = -WALK; H.face = -1; } else if (I.right) { dx = WALK; H.face = 1; }
@@ -2320,7 +2372,7 @@ function updatePlay() {
   for (const e of L.enemies) {
     if (e.dead || e.scr !== key) continue;
     updateEnemy(e, t);
-    if (overlap(hr, enemyRect(e))) { killHero(); return; }
+    if (H.safeT <= 0 && overlap(hr, enemyRect(e))) { killHero(); return; }
   }
   for (const l of L.lanterns) if (l.on && l.scr === key && overlap(hr, l)) douseLantern(l);
 
@@ -2390,7 +2442,7 @@ function render() {
       ctx.fillStyle = PAL[0]; ctx.fillRect(80, 58, 160, 44);
       ctx.fillStyle = PAL[RED]; ctx.fillRect(80, 58, 160, 2); ctx.fillRect(80, 100, 160, 2);
       textC('GAME OVER', 66, (G.t >> 3) & 1 ? WHITE : LRED, 2);
-      textC('FIRE: BACK TO TITLE', 88, LBLUE);
+      textC('FIRE: TITLE    R: RESTART', 88, LBLUE);
     }
   }
   if (G.paused) {
@@ -2441,7 +2493,8 @@ function renderPlayfield() {
   }
 
   // hero
-  if (G.state !== 'dying' || ((H.deadT >> 2) & 1) === 0 && H.deadT < 50) drawHero(ox, oy, t);
+  const blink = G.state === 'play' && H.safeT > 0 && ((t >> 2) & 1);
+  if (!blink && (G.state !== 'dying' || ((H.deadT >> 2) & 1) === 0 && H.deadT < 50)) drawHero(ox, oy, t);
 
   // laser beam: solid core line with travelling colour dots, spark where it hits
   if (H.beam) {
@@ -2600,7 +2653,7 @@ function renderTitle() {
   if ((t >> 5) & 1) textC('PRESS FIRE OR SPACE TO START', 144, YELLOW);
   textC('HIGHSCORE ' + String(hiscore).padStart(6, '0'), 160, LGREEN);
   textC('ARROWS: FLY   DOWN: DYNAMITE   SPACE: LASER', 176, GREY);
-  textC('P: PAUSE   M: SOUND   LEFT/RIGHT: LEVEL', 186, GREY);
+  textC('P: PAUSE  M: SOUND  R: RESTART  ESC: TITLE', 186, GREY);
 }
 
 /* ------------------------------------------------------------------ */

@@ -79,5 +79,6 @@ Ein eigenständiges Single-File-Spiel im Stil der C64-Höhlenrettungs-Klassiker 
 - Alle Spieltexte auf Englisch
 - Spinnen, Fledermäuse, Motten, Wandschlangen, Tentakel, Magma, Wasser, Laternen (Dunkelheit), sprengbare Wände
 - Punkte: Gegner 50, Wand 75, Rettung 1000, Rest-Power und Rest-Dynamit als Bonus, Extraleben alle 20.000
-- Steuerung: Pfeile/WASD, Leertaste = Laser, Pfeil runter = Dynamit, P = Pause, M = Ton; Gamepad und Touch-Steuerung
+- Steuerung: Pfeile/WASD, Leertaste = Laser, Pfeil runter = Dynamit, P = Pause, M = Ton, R = Neustart, Esc = Titel; Gamepad und Touch-Steuerung
+- Sicherer Respawn: kurze Schonzeit (Figur blinkt), fliegende Gegner in der Nähe werden weggeschickt
 - Sound per WebAudio-Synth, keine externen Bibliotheken
