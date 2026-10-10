@@ -167,36 +167,40 @@ function makeSprite(rows, map) {
 }
 function drawSpr(s, x, y, flip) { ctx.drawImage(flip ? s.f : s.n, Math.round(x), Math.round(y)); }
 
-// Our rescuer: white helmet with blue visor, cyan overall, grey prop-pack, rotor on a mast.
-const HERO_MAP = { w: LGREY, g: GREY, h: WHITE, v: LBLUE, s: LRED, c: CYAN, p: GREY, y: YELLOW, k: DGREY, l: YELLOW };
+// Our rescuer: white helmet with blue visor, cyan overall. On the back sits a grey
+// prop-pack; a mast runs up behind the helmet to a horizontal rotor just above the head.
+// The rotor is seen edge-on, so its spin shows as blades growing and shrinking.
+const HERO_MAP = { w: LGREY, W: WHITE, g: GREY, q: DGREY, h: WHITE, v: LBLUE, s: LRED, c: CYAN, p: GREY, y: YELLOW, k: DGREY, l: YELLOW };
 const ROTOR = [
-  ['wwwwwwww', '...gg...'],
-  ['.wwwwww.', '...gg...'],
-  ['...ww...', '...gg...'],
-  ['.wwwwww.', '...gg...'],
+  'wwwWgWwww...',
+  '.wwWgWww....',
+  '...WgW......',
+  '.wwWgWww....',
 ];
 const HERO_TOP = [
-  '..hhhh..',
-  '.hhhhhh.',
-  '.hhhvvvl',
-  '..sssvv.',
-  '...ss...',
-  '.pcccc..',
-  'ppccccs.',
-  'ppcccc.s',
-  'ppcccc..',
-  '..yyyy..',
+  '....g.......',
+  '....g.hhh...',
+  '....ghhhhh..',
+  '....ghhvvvl.',
+  '....g.sssv..',
+  '...qg..ss...',
+  '..pppcccc...',
+  '..pqpccccs..',
+  '..pqpcccc.s.',
+  '..pppcccc...',
+  '.....yyyy...',
 ];
 const LEGS = [
-  ['..cccc..', '..cc.cc.', '..cc.cc.', '..cc.cc.', '..cc.cc.', '..kk.kk.', '..kkk.kkk'.slice(0, 8), '........'],
-  ['..cccc..', '.cc..cc.', '.cc..cc.', 'cc....cc', 'cc....cc', 'kk....kk', 'kk....kk', '........'],
-  ['..cccc..', '..cccc..', '...cc...', '...cc...', '..cc.c..', '..kk.kk.', '..kk.kk.', '........'],
-  ['..cccc..', '..cc.cc.', '..cc..cc', '..cc..cc', '..kk..kk', '..kk....', '........', '........'],
+  ['.....cccc...', '.....cc.cc..', '.....cc.cc..', '.....cc.cc..', '.....cc.cc..', '.....cc.cc..', '.....kk.kk..', '.....kk.kkk.'],
+  ['.....cccc...', '....cc..cc..', '....cc..cc..', '...cc....cc.', '...cc....cc.', '...cc....cc.', '...kk....kk.', '...kk....kkk'],
+  ['.....cccc...', '.....cccc...', '......cc....', '......cc....', '.....cc.c...', '.....cc.cc..', '.....kk.kk..', '.....kk.kk..'],
+  ['.....cccc...', '.....cc.cc..', '.....cc..cc.', '.....cc..cc.', '.....cc..cc.', '.....kk..kk.', '.....kk.....', '............'],
 ];
-const heroSpr = LEGS.map(l => ROTOR.map(r => makeSprite([...r, ...HERO_TOP, ...l], HERO_MAP)));
-// sprite is 16x20; hitbox = x+3, y+2, 10x18
-const HERO_OX = 3, HERO_OY = 2;
-const heroIcon = makeSprite(['wwww', '.gg.', 'hhhh', 'hhvv', '.cc.', 'cccc', '.cc.'], HERO_MAP);
+const heroSpr = LEGS.map(l => ROTOR.map(r => makeSprite([r, ...HERO_TOP, ...l], HERO_MAP)));
+// sprite is 24x20; body = fat cols 5..9. Hitbox 10x18, offset depends on facing (sprite is mirrored)
+const HERO_OY = 2;
+const heroOX = face => face > 0 ? 10 : 4;
+const heroIcon = makeSprite(['wwgww', '..g..', '..ghh', '.ghvv', 'ppcc.', 'ppcc.', '..cc.'], HERO_MAP);
 
 const MINER_MAP = { y: YELLOW, o: ORANGE, s: LRED, b: LBLUE, k: DGREY, l: WHITE };
 const MINER_BASE = ['...l....', '..yyyy..', '.yyyyyy.', 'yyyyyyyy', '..ssss..', '..s.ss..', '..ssss..', '...ss...'];
@@ -385,7 +389,7 @@ const LEVELS = [
  { rock: [GREEN, BROWN, LGREEN], grid: [
   [[
    '####################',
-   '#.P................#',
+   '#..........P.......#',
    '#..................#',
    '#.......B.......!..#',
    '#...################',
@@ -592,7 +596,7 @@ const LEVELS = [
   [ROCK,
   [
    '####################',
-   '#.....!.....P......#',
+   '#.....!.........P..#',
    '#..................#',
    '#....B........O....#',
    '#######MM...MM######',
@@ -829,7 +833,7 @@ function buildLevel(idx) {
   for (let r = 0; r < mh; r++) for (let c = 0; c < mw; c++) {
     const ch = g[r * mw + c], x = c * TS, y = r * TS, scr = Math.floor(c / SC) + ',' + Math.floor(r / SR);
     switch (ch) {
-      case 'P': start = { x: x + 3, y: y - 2 }; g[r * mw + c] = '.'; break;
+      case 'P': start = { x: x + 3, y: y }; g[r * mw + c] = '.'; break;
       case 'X': lv.miner = { x: x, y: (r + 1) * TS - 18, w: 16, h: 18 }; g[r * mw + c] = '.'; break;
       case '!': lv.lanterns.push({ x: x, y: y + 2, w: 16, h: 8, on: true, scr }); g[r * mw + c] = '.'; break;
       case 'T': g[r * mw + c] = '~'; lv.enemies.push({ type: 'tentacle', x: x + 4, base: y + 2, ph: hash(c, r, 7) * 6, scr, hgt: 0 }); break;
@@ -945,6 +949,7 @@ function newGame() {
 function startLevel() {
   L = buildLevel(G.levelIdx);
   H.x = L.start.x; H.y = L.start.y; H.vy = 0; H.spin = 0; H.face = 1; H.power = 1; H.dyn = 6;
+  for (let i = 0; i < PH && !blocked(H.x, H.y + 1, H.w, H.h); i++) H.y++;   // start standing on the floor
   H.firing = false; H.beam = null;
   setScreenFromHero(true);
   G.state = 'play';
@@ -1160,7 +1165,7 @@ function updatePlay() {
   H.firing = I.fire;
   H.beam = null;
   if (H.firing) {
-    const by = H.y + 3;
+    const by = H.y + 2;   // from the helmet lamp
     const x0 = H.face > 0 ? H.x + H.w : H.x - 1;
     const left = L.sx * VW, right = left + VW;
     let len = 0, wall = null;
@@ -1390,7 +1395,7 @@ function drawHero(ox, oy, t) {
   if (!H.onGround && G.state === 'play') legs = H.vy < -0.2 ? 2 : 3;
   else if (H.walkT && (input.left || input.right) && G.state === 'play') legs = ((H.walkT >> 3) & 1) ? 1 : 0;
   const rot = H.spin > 0.02 ? Math.floor(H.rotT) % 4 : 0;
-  drawSpr(heroSpr[legs][rot], H.x - HERO_OX - ox, H.y - HERO_OY - oy, H.face < 0);
+  drawSpr(heroSpr[legs][rot], H.x - heroOX(H.face) - ox, H.y - HERO_OY - oy, H.face < 0);
 }
 
 function renderHUD() {
@@ -1447,7 +1452,7 @@ function renderTitle() {
   // little scene: rescuer hovering, miner waiting
   ctx.fillStyle = PAL[ORANGE]; ctx.fillRect(40, 116, 240, 4);
   ctx.fillStyle = PAL[BROWN]; ctx.fillRect(40, 120, 240, 2);
-  const hx = 70 + Math.round((Math.sin(t * 0.01) + 1) * 70), hy = 84 + Math.round(Math.sin(t * 0.05) * 4);
+  const hx = 64 + Math.round((Math.sin(t * 0.01) + 1) * 70), hy = 84 + Math.round(Math.sin(t * 0.05) * 4);
   drawSpr(heroSpr[3][Math.floor(t * 0.6) % 4], hx, hy, Math.cos(t * 0.01) < 0);
   drawSpr(minerSpr[(t >> 4) & 1 ? 1 : 2], 250, 98);
   drawSpr(batSpr[(t >> 3) & 1], 120 + Math.round(Math.sin(t * 0.03) * 40), 74);
