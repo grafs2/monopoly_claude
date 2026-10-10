@@ -1934,7 +1934,6 @@ const H = { laserT: 0, safeT: 0, x: 0, y: 0, w: 10, h: 18, vy: 0, face: 1, spin:
 let L = null;
 
 const PRO_START = 12;                       // after level 20 the PRO round replays levels 13-20
-const START_LEVELS = [0, 4, 8, 12, 16];     // selectable start levels 1, 5, 9, 13, 17
 const levelNo = () => G.levelIdx + 1;
 
 function hash(x, y, s) {
@@ -2084,7 +2083,7 @@ function moveAxis(dx, dy) {
 /* Flow                                                                */
 /* ------------------------------------------------------------------ */
 function newGame() {
-  G.score = 0; G.lives = 3; G.loop = 0; G.levelIdx = START_LEVELS[G.startSel]; G.nextLife = 20000;
+  G.score = 0; G.lives = 3; G.loop = 0; G.levelIdx = G.startSel; G.nextLife = 20000;
   startLevel();
 }
 function startLevel() {
@@ -2276,9 +2275,12 @@ function update() {
   }
 }
 function updateTitle() {
-  const n = START_LEVELS.length;
-  if (pressed('left') || pressed('down')) G.startSel = (G.startSel + n - 1) % n;
-  if (pressed('right') || pressed('up')) G.startSel = (G.startSel + 1) % n;
+  // every level can be chosen: left/right = one level, up/down = five levels
+  const n = LEVELS.length;
+  if (pressed('left')) G.startSel = (G.startSel + n - 1) % n;
+  if (pressed('right')) G.startSel = (G.startSel + 1) % n;
+  if (pressed('up')) G.startSel = Math.min(n - 1, G.startSel + 5);
+  if (pressed('down')) G.startSel = Math.max(0, G.startSel - 5);
   if (pressed('fire') || pressed('start')) newGame();
 }
 function restartGame() {
@@ -2649,9 +2651,10 @@ function renderTitle() {
   drawSpr(minerSpr[(t >> 4) & 1 ? 1 : 2], 250, 98);
   drawSpr(batSpr[(t >> 3) & 1], 120 + Math.round(Math.sin(t * 0.03) * 40), 74);
 
-  textC('START LEVEL  < ' + (START_LEVELS[G.startSel] + 1) + ' >', 130, WHITE);
-  if ((t >> 5) & 1) textC('PRESS FIRE OR SPACE TO START', 144, YELLOW);
-  textC('HIGHSCORE ' + String(hiscore).padStart(6, '0'), 160, LGREEN);
+  textC('START LEVEL  < ' + String(G.startSel + 1).padStart(2, ' ') + ' >', 127, WHITE);
+  textC('LEFT/RIGHT: +-1   UP/DOWN: +-5', 137, LBLUE);
+  if ((t >> 5) & 1) textC('PRESS FIRE OR SPACE TO START', 149, YELLOW);
+  textC('HIGHSCORE ' + String(hiscore).padStart(6, '0'), 162, LGREEN);
   textC('ARROWS: FLY   DOWN: DYNAMITE   SPACE: LASER', 176, GREY);
   textC('P: PAUSE  M: SOUND  R: RESTART  ESC: TITLE', 186, GREY);
 }

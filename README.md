@@ -75,7 +75,7 @@ Ein eigenständiges Single-File-Spiel im Stil der C64-Höhlenrettungs-Klassiker 
 
 - 320×200 virtueller Bildschirm, 16-Farben-C64-Palette, Multicolor-Pixel (2×1)
 - 20 Level mit Bildschirmwechsel (Flip-Screen): 1–8 von Hand gebaut, 9–20 einmalig mit einem Level-Baukasten erzeugt und auf Lösbarkeit geprüft; danach PRO-Runde (Level 13–20) mit schnellerem Energieverbrauch
-- Startlevel wählbar wie im Original: 1, 5, 9, 13, 17
+- Jedes der 20 Level ist im Titelbild als Startlevel wählbar (links/rechts: ±1, hoch/runter: ±5)
 - Alle Spieltexte auf Englisch
 - Spinnen, Fledermäuse, Motten, Wandschlangen, Tentakel, Magma, Wasser, Laternen (Dunkelheit), sprengbare Wände
 - Punkte: Gegner 50, Wand 75, Rettung 1000, Rest-Power und Rest-Dynamit als Bonus, Extraleben alle 20.000
