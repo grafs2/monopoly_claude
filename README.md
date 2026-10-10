@@ -67,3 +67,15 @@ The code is organized into logical regions within the single file:
 
 ---
 *Note: This is an educational implementation of the classic board game logic.*
+---
+
+## R.O.T.O.R. – Retro-Höhlenrettung (`rotor/index.html`)
+
+Ein eigenständiges Single-File-Spiel im Stil der C64-Höhlenrettungs-Klassiker von 1984 (Rotor-Rucksack, Helm-Laser, Dynamit, Power-Leiste). Figur, Titel, Level und Musik sind eigene Entwürfe.
+
+- 320×200 virtueller Bildschirm, 16-Farben-C64-Palette, Multicolor-Pixel (2×1)
+- 8 handgebaute Level mit Bildschirmwechsel (Flip-Screen), danach PRO-Durchgang mit schnellerem Energieverbrauch
+- Spinnen, Fledermäuse, Motten, Wandschlangen, Tentakel, Magma, Wasser, Laternen (Dunkelheit), sprengbare Wände
+- Punkte: Gegner 50, Wand 75, Rettung 1000, Rest-Power und Rest-Dynamit als Bonus, Extraleben alle 20.000
+- Steuerung: Pfeile/WASD, Leertaste = Laser, Pfeil runter = Dynamit, P = Pause, M = Ton; Gamepad und Touch-Steuerung
+- Sound per WebAudio-Synth, keine externen Bibliotheken
