@@ -63,9 +63,9 @@ kbd {
 <div id="monitor"><canvas id="screen" width="320" height="200" aria-label="R.O.T.O.R. playfield"></canvas></div>
 <div id="legend">
   <span><kbd>&larr;</kbd><kbd>&rarr;</kbd> walk / fly</span>
-  <span><kbd>&uarr;</kbd> rotor (tap: hover, hold: climb)</span>
+  <span><kbd>Space</kbd> rotor (tap: hover, hold: climb)</span>
   <span><kbd>&darr;</kbd> drop dynamite (on the ground)</span>
-  <span><kbd>Space</kbd> helmet laser</span>
+  <span><kbd>E</kbd> / <kbd>&uarr;</kbd> helmet laser</span>
   <span><kbd>P</kbd> pause</span>
   <span><kbd>M</kbd> sound</span>
   <span><kbd>R</kbd> restart game</span>
@@ -1798,8 +1798,10 @@ const hits = {};        // presses latched until the next simulation tick
 const touchKeys = {};
 const KEYMAP = {
   ArrowLeft: 'left', KeyA: 'left', ArrowRight: 'right', KeyD: 'right',
-  ArrowUp: 'up', KeyW: 'up', ArrowDown: 'down', KeyS: 'down',
-  Space: 'fire', ControlLeft: 'fire', ControlRight: 'fire', KeyK: 'fire', KeyX: 'fire', Enter: 'start'
+  ArrowDown: 'down', KeyS: 'down',
+  Space: 'up',                                   // rotor: fly up
+  ArrowUp: 'fire', KeyE: 'fire', KeyW: 'fire',   // helmet laser
+  ControlLeft: 'fire', ControlRight: 'fire', KeyK: 'fire', KeyX: 'fire', Enter: 'start'
 };
 window.addEventListener('keydown', e => {
   const k = KEYMAP[e.code];
@@ -1929,7 +1931,7 @@ const WALK = 1.2, LASER_LEN = 44, WALL_HP = 150;
 let hiscore = 0;
 try { hiscore = +localStorage.getItem('rotor_hi') || 0; } catch (e) { hiscore = 0; }
 
-const G = { state: 'title', paused: false, t: 0, score: 0, lives: 3, levelIdx: 0, loop: 0, startSel: 0, nextLife: 20000, timer: 0, tally: 0 };
+const G = { selHold: 0, state: 'title', paused: false, t: 0, score: 0, lives: 3, levelIdx: 0, loop: 0, startSel: 0, nextLife: 20000, timer: 0, tally: 0 };
 const H = { laserT: 0, safeT: 0, x: 0, y: 0, w: 10, h: 18, vy: 0, face: 1, spin: 0, onGround: false, walkT: 0, rotT: 0, firing: false, beam: null, power: 1, dyn: 6, ex: 0, ey: 0, deadT: 0 };
 let L = null;
 
@@ -2276,18 +2278,20 @@ function update() {
     case 'rescue': updateRescue(); break;
     case 'gameover':
       G.timer++; updateParticles();
-      if (G.timer > 60 && (pressed('fire') || pressed('start'))) G.state = 'title';
+      if (G.timer > 60 && (pressed('fire') || pressed('start') || pressed('up'))) G.state = 'title';
       break;
   }
 }
 function updateTitle() {
-  // every level can be chosen: left/right = one level, up/down = five levels
+  // every level can be chosen with left/right; holding the key repeats
   const n = LEVELS.length;
-  if (pressed('left')) G.startSel = (G.startSel + n - 1) % n;
-  if (pressed('right')) G.startSel = (G.startSel + 1) % n;
-  if (pressed('up')) G.startSel = Math.min(n - 1, G.startSel + 5);
-  if (pressed('down')) G.startSel = Math.max(0, G.startSel - 5);
-  if (pressed('fire') || pressed('start')) newGame();
+  const dir = input.left ? -1 : input.right ? 1 : 0;
+  if (dir) {
+    if (pressed('left') || pressed('right')) G.selHold = 0;
+    if (G.selHold === 0 || (G.selHold > 18 && G.selHold % 5 === 0)) G.startSel = (G.startSel + n + dir) % n;
+    G.selHold++;
+  } else G.selHold = 0;
+  if (pressed('fire') || pressed('start') || pressed('up')) newGame();
 }
 function restartGame() {
   if (G.state === 'title') return;
@@ -2450,7 +2454,7 @@ function render() {
       ctx.fillStyle = PAL[0]; ctx.fillRect(80, 58, 160, 44);
       ctx.fillStyle = PAL[RED]; ctx.fillRect(80, 58, 160, 2); ctx.fillRect(80, 100, 160, 2);
       textC('GAME OVER', 66, (G.t >> 3) & 1 ? WHITE : LRED, 2);
-      textC('FIRE: TITLE    R: RESTART', 88, LBLUE);
+      textC('SPACE: TITLE    R: RESTART', 88, LBLUE);
     }
   }
   if (G.paused) {
@@ -2658,10 +2662,10 @@ function renderTitle() {
   drawSpr(batSpr[(t >> 3) & 1], 120 + Math.round(Math.sin(t * 0.03) * 40), 74);
 
   textC('START LEVEL  < ' + String(G.startSel + 1).padStart(2, ' ') + ' >', 127, WHITE);
-  textC('LEFT/RIGHT: +-1   UP/DOWN: +-5', 137, LBLUE);
-  if ((t >> 5) & 1) textC('PRESS FIRE OR SPACE TO START', 149, YELLOW);
+  textC('LEFT/RIGHT: CHOOSE LEVEL', 137, LBLUE);
+  if ((t >> 5) & 1) textC('PRESS SPACE, E OR UP TO START', 149, YELLOW);
   textC('HIGHSCORE ' + String(hiscore).padStart(6, '0'), 162, LGREEN);
-  textC('ARROWS: FLY   DOWN: DYNAMITE   SPACE: LASER', 176, GREY);
+  textC('SPACE: ROTOR  E/UP: LASER  DOWN: DYNAMITE', 176, GREY);
   textC('P: PAUSE  M: SOUND  R: RESTART  ESC: TITLE', 186, GREY);
 }
 

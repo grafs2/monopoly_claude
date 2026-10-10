@@ -76,10 +76,10 @@ Ein eigenständiges Single-File-Spiel im Stil der C64-Höhlenrettungs-Klassiker 
 - 320×200 virtueller Bildschirm, 16-Farben-C64-Palette, Multicolor-Pixel (2×1)
 - 20 Level mit Bildschirmwechsel (Flip-Screen): 1–8 von Hand gebaut, 9–20 einmalig mit einem Level-Baukasten erzeugt und auf Lösbarkeit geprüft; danach PRO-Runde (Level 13–20) mit schnellerem Energieverbrauch
 - Schwierigkeit steigt ab Level 7 an: schnellere Gegner, längere Schlangen und Tentakel, zähere Wände, knappere Energie; Level 9–20 dichter mit Gegnern, Wänden, Lava und Wasser
-- Jedes der 20 Level ist im Titelbild als Startlevel wählbar (links/rechts: ±1, hoch/runter: ±5)
+- Jedes der 20 Level ist im Titelbild als Startlevel wählbar (links/rechts, Taste gedrückt halten zum Durchblättern)
 - Alle Spieltexte auf Englisch
 - Spinnen, Fledermäuse, Motten, Wandschlangen, Tentakel, Magma, Wasser, Laternen (Dunkelheit), sprengbare Wände
 - Punkte: Gegner 50, Wand 75, Rettung 1000, Rest-Power und Rest-Dynamit als Bonus, Extraleben alle 20.000
-- Steuerung: Pfeile/WASD, Leertaste = Laser, Pfeil runter = Dynamit, P = Pause, M = Ton, R = Neustart, Esc = Titel; Gamepad und Touch-Steuerung
+- Steuerung: Pfeile links/rechts (A/D) = laufen/fliegen, Leertaste = Rotor/hochfliegen, E oder Pfeil hoch = Laser, Pfeil runter = Dynamit, P = Pause, M = Ton, R = Neustart, Esc = Titel; Gamepad und Touch-Steuerung
 - Sicherer Respawn: kurze Schonzeit (Figur blinkt), fliegende Gegner in der Nähe werden weggeschickt
 - Sound per WebAudio-Synth, keine externen Bibliotheken
